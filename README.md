@@ -29,7 +29,7 @@ An inline AI coding assistant for Neovim powered by Claude. Press `<leader>aa` t
 
 ```lua
 {
-  "you/nudge.nvim",           -- replace with your actual repo path
+  "jfmainville/nudge.nvim",
   config = function()
     require("nudge").setup({
       auth = {
@@ -45,7 +45,7 @@ An inline AI coding assistant for Neovim powered by Claude. Press `<leader>aa` t
 
 ```lua
 use {
-  "you/nudge.nvim",
+  "jfmainville/nudge.nvim",
   config = function()
     require("nudge").setup()
   end,
@@ -58,7 +58,7 @@ use {
 
 Call `require("nudge").setup(opts)` with any of the options below. All fields are optional — the table shows defaults.
 
-```lua
+````lua
 require("nudge").setup({
 
   -- Authentication --------------------------------------------------------
@@ -105,7 +105,7 @@ Do NOT add explanations, comments, or any text beyond the code itself.
 Preserve the indentation style of any code provided as context.
   ]],
 })
-```
+````
 
 ---
 
@@ -142,12 +142,12 @@ claude auth login
 
 ## Usage
 
-| Mode   | Keys          | Behaviour                                                  |
-|--------|---------------|------------------------------------------------------------|
-| Normal | `<leader>aa`  | Open prompt → insert generated code below the cursor       |
-| Visual | `<leader>aa`  | Open prompt → replace selected lines with generated code   |
-| Input  | `<Enter>`     | Submit the prompt                                          |
-| Input  | `<Esc>`       | Cancel                                                     |
+| Mode   | Keys         | Behaviour                                                |
+| ------ | ------------ | -------------------------------------------------------- |
+| Normal | `<leader>aa` | Open prompt → insert generated code below the cursor     |
+| Visual | `<leader>aa` | Open prompt → replace selected lines with generated code |
+| Input  | `<Enter>`    | Submit the prompt                                        |
+| Input  | `<Esc>`      | Cancel                                                   |
 
 A `:Nudge` command is also registered after `setup()`.
 
