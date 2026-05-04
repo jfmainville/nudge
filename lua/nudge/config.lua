@@ -8,7 +8,7 @@ M.defaults = {
 		provider = "api_key",
 		api_key = nil, -- falls back to ANTHROPIC_API_KEY env var when nil
 	},
-	model = "claude-haiku-4-5",
+	model = "claude-sonnet-4-6",
 	max_tokens = 8192,
 	keymaps = {
 		prompt = "<leader>aa",
