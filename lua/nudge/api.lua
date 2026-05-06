@@ -25,13 +25,27 @@ function M.build_messages(prompt, context, filetype, file)
 		)
 		table.insert(parts, context)
 		table.insert(parts, "---")
-		output_rule = "Output ONLY the replacement lines. Do not include the rest of the file."
-	elseif file and file.cursor_row then
-		table.insert(parts, ("Cursor is at line %d."):format(file.cursor_row))
+		output_rule = table.concat({
+			"Output ONLY the replacement lines for the selection above.",
+			"Do NOT include any other part of the file.",
+			"Start at column 0 — the editor re-applies the correct base indentation.",
+			"Preserve relative indentation within the block.",
+		}, " ")
+	elseif file and file.is_file_edit then
+		table.insert(parts, ("Cursor is at line %d."):format(file.cursor_row or 0))
 		table.insert(parts, "---")
-		output_rule = "Output ONLY the new lines to insert. Do not include any existing file content."
+		output_rule = table.concat({
+			"Return the COMPLETE modified file.",
+			"Change ONLY what the instruction requires.",
+			"Preserve all content, formatting, and indentation that the instruction does not touch.",
+			"Do NOT add, remove, or alter anything beyond what is explicitly requested.",
+		}, " ")
 	else
-		output_rule = "Output ONLY the requested code. Do not include any surrounding context."
+		output_rule = table.concat({
+			"Output ONLY the requested code.",
+			"Start at column 0 — the editor re-applies the correct base indentation.",
+			"Preserve relative indentation within the block.",
+		}, " ")
 	end
 
 	table.insert(parts, "Instruction: " .. prompt)

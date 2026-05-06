@@ -88,15 +88,9 @@ end
 -- Visual selection helpers
 -- ---------------------------------------------------------------------------
 
-local function get_visual_selection(buf)
-	local s = vim.fn.getpos("'<")
-	local e = vim.fn.getpos("'>")
-	local sr, sc = s[2], s[3]
-	local er, ec = e[2], e[3]
-
+local function get_visual_lines(buf, sr, er)
 	local lines = vim.api.nvim_buf_get_lines(buf, sr - 1, er, false)
-	local text = table.concat(lines, "\n")
-	return text, sr, sc, er, ec
+	return table.concat(lines, "\n")
 end
 
 -- ---------------------------------------------------------------------------
@@ -140,17 +134,22 @@ local function reindent(lines, target_indent)
 	return out
 end
 
-local function apply_result(buf, text, is_visual, sel_sr, sel_er, cursor_row)
+-- mode: "replace_buffer" | "replace_selection" | "insert"
+local function apply_result(buf, text, mode, sel_sr, sel_er, cursor_row)
 	local lines = split_lines(text)
 
-	if is_visual then
+	if mode == "replace_buffer" then
+		local cur = vim.api.nvim_win_get_cursor(0)
+		vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+		local new_row = math.min(cur[1], #lines)
+		pcall(vim.api.nvim_win_set_cursor, 0, { new_row, cur[2] })
+	elseif mode == "replace_selection" then
 		local indent = line_indent(buf, sel_sr)
 		lines = reindent(lines, indent)
 		vim.api.nvim_buf_set_lines(buf, sel_sr - 1, sel_er, false, lines)
 		vim.api.nvim_win_set_cursor(0, { sel_sr, #indent })
-	else
-		local ref_row = cursor_row
-		local indent = line_indent(buf, ref_row)
+	else -- "insert"
+		local indent = line_indent(buf, cursor_row)
 		lines = reindent(lines, indent)
 		vim.api.nvim_buf_set_lines(buf, cursor_row, cursor_row, false, lines)
 		vim.api.nvim_win_set_cursor(0, { cursor_row + 1, #indent })
@@ -203,9 +202,11 @@ end
 -- Public: open_prompt
 -- ---------------------------------------------------------------------------
 
----@param config table  Resolved nudge config
----@param is_visual boolean  Whether called from visual mode
-function M.open_prompt(config, is_visual)
+---@param config table     Resolved nudge config
+---@param is_visual boolean Whether called from visual mode
+---@param vis_sr number|nil Visual selection start row (1-indexed), set by keymap before Esc
+---@param vis_er number|nil Visual selection end row (1-indexed)
+function M.open_prompt(config, is_visual, vis_sr, vis_er)
 	local target_buf = vim.api.nvim_get_current_buf()
 	local cursor = vim.api.nvim_win_get_cursor(0)
 	local cursor_row = cursor[1]
@@ -218,10 +219,12 @@ function M.open_prompt(config, is_visual)
 	local file_content = table.concat(file_lines, "\n")
 
 	local context, sel_sr, sel_er
-	if is_visual then
-		local text, sr, _sc, er = get_visual_selection(target_buf)
-		context, sel_sr, sel_er = text, sr, er
+	if is_visual and vis_sr and vis_er then
+		sel_sr, sel_er = vis_sr, vis_er
+		context = get_visual_lines(target_buf, sel_sr, sel_er)
 	end
+
+	local mode = is_visual and "replace_selection" or "replace_buffer"
 
 	local file_ctx = {
 		name = file_name,
@@ -229,6 +232,7 @@ function M.open_prompt(config, is_visual)
 		cursor_row = cursor_row,
 		sel_sr = sel_sr,
 		sel_er = sel_er,
+		is_file_edit = not is_visual,
 	}
 
 	local input_buf, input_win = open_input_win(config)
@@ -255,11 +259,14 @@ function M.open_prompt(config, is_visual)
 
 		api.stream(config, messages, function(token)
 			accumulated = accumulated .. token
-			preview_id = set_preview(target_buf, cursor_row, accumulated, preview_id)
+			-- Skip streaming preview for whole-file edits — too noisy
+			if mode ~= "replace_buffer" then
+				preview_id = set_preview(target_buf, cursor_row, accumulated, preview_id)
+			end
 		end, function()
 			spinner:stop()
 			clear_mark(target_buf, preview_id)
-			apply_result(target_buf, accumulated, is_visual, sel_sr, sel_er, cursor_row)
+			apply_result(target_buf, accumulated, mode, sel_sr, sel_er, cursor_row)
 		end, function(err)
 			spinner:stop()
 			clear_mark(target_buf, preview_id)

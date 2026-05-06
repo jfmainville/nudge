@@ -19,11 +19,16 @@ function M._register_keymaps()
 		ui.open_prompt(M._config, false)
 	end, { desc = "Nudge: AI inline prompt" })
 
-	-- Visual mode: exit visual first so '< '> marks are set, then open prompt
-	vim.keymap.set("v", key, function()
-		-- <Esc> commits the visual selection marks before we read them
+	-- Visual mode ("x" = visual only, excludes select mode):
+	-- Capture the range NOW while still in visual mode, then exit.
+	vim.keymap.set("x", key, function()
+		local sr = vim.fn.line("v")
+		local er = vim.fn.line(".")
+		if sr > er then
+			sr, er = er, sr
+		end
 		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
-		ui.open_prompt(M._config, true)
+		ui.open_prompt(M._config, true, sr, er)
 	end, { desc = "Nudge: AI inline prompt (visual)" })
 end
 
