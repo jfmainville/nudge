@@ -12,8 +12,9 @@ M.defaults = {
 	max_tokens = 8192,
 	keymaps = {
 		prompt = "<leader>aa",
+		chat   = "<leader>ac",
 		submit = "<CR>",
-		close = "<Esc>",
+		close  = "<Esc>",
 	},
 	ui = {
 		border = "rounded",
@@ -23,6 +24,12 @@ M.defaults = {
 		spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
 		spinner_interval = 80,
 	},
+	chat_system_prompt = table.concat({
+		"You are a helpful coding assistant integrated into a code editor.",
+		"Answer questions clearly and concisely.",
+		"You may use markdown formatting in your responses, including code blocks.",
+		"Keep your answers focused and practical.",
+	}, " "),
 	system_prompt = table.concat({
 		"You are an expert coding assistant embedded inside a code editor.",
 		"Do NOT wrap output in markdown code fences (``` blocks).",

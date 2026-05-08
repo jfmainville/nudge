@@ -4,12 +4,29 @@ if vim.g.loaded_nudge then
 end
 vim.g.loaded_nudge = true
 
--- Expose :Nudge command as a convenience
-vim.api.nvim_create_user_command("Nudge", function(opts)
+local function assert_setup()
 	local nudge = require("nudge")
-	if nudge._config and next(nudge._config) ~= nil then
-		require("nudge.ui").open_prompt(nudge._config, false)
-	else
+	if not nudge._config or next(nudge._config) == nil then
 		vim.notify("Nudge: call require('nudge').setup({}) first", vim.log.levels.WARN)
+		return nil
 	end
-end, { desc = "Open Nudge AI prompt" })
+	return nudge._config
+end
+
+vim.api.nvim_create_user_command("Nudge", function()
+	local cfg = assert_setup()
+	if cfg then
+		require("nudge.ui").open_prompt(cfg, false)
+	end
+end, { desc = "Open Nudge inline AI prompt" })
+
+vim.api.nvim_create_user_command("NudgeChat", function()
+	local cfg = assert_setup()
+	if cfg then
+		require("nudge.chat").open(cfg)
+	end
+end, { desc = "Open Nudge chat window" })
+
+vim.api.nvim_create_user_command("NudgeChatClear", function()
+	require("nudge.chat").clear()
+end, { desc = "Clear Nudge chat history" })

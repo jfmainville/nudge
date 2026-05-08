@@ -1,4 +1,5 @@
-local api = require("nudge.api")
+local api      = require("nudge.api")
+local question = require("nudge.question")
 
 local M = {}
 
@@ -243,6 +244,11 @@ function M.open_prompt(config, is_visual, vis_sr, vis_er)
 		close_input(input_buf, input_win)
 
 		if prompt == "" then
+			return
+		end
+
+		if question.is_question(prompt) then
+			question.open(config, prompt, context, filetype, file_ctx)
 			return
 		end
 

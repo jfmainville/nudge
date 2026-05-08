@@ -1,5 +1,6 @@
 local config_module = require("nudge.config")
-local ui = require("nudge.ui")
+local ui   = require("nudge.ui")
+local chat = require("nudge.chat")
 
 local M = {}
 
@@ -18,6 +19,10 @@ function M._register_keymaps()
 	vim.keymap.set("n", key, function()
 		ui.open_prompt(M._config, false)
 	end, { desc = "Nudge: AI inline prompt" })
+
+	vim.keymap.set("n", M._config.keymaps.chat, function()
+		chat.open(M._config)
+	end, { desc = "Nudge: open chat" })
 
 	-- Visual mode ("x" = visual only, excludes select mode):
 	-- Capture the range NOW while still in visual mode, then exit.
