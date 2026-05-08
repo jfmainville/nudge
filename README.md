@@ -194,6 +194,6 @@ nvim --headless --noplugin -u tests/minimal_init.lua \
 
 ## Contributing
 
-1. Keep modules focused — `config.lua`, `api.lua`, `ui.lua` each own one concern.
+1. Keep modules focused, `config.lua`, `api.lua`, `ui.lua` each own one concern.
 2. Run `make lint` and `make test` before opening a PR.
 3. No external Lua runtime dependencies beyond `plenary` for tests.
