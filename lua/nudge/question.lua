@@ -175,9 +175,13 @@ function M.open(config, initial_question, context, filetype, file_ctx)
 		style     = "minimal",
 		noautocmd = true,
 	})
-	vim.wo[state.chat_win].wrap       = true
-	vim.wo[state.chat_win].linebreak  = true
+	vim.wo[state.chat_win].wrap      = true
+	vim.wo[state.chat_win].linebreak = true
 	vim.wo[state.chat_win].cursorline = false
+	vim.api.nvim_win_call(state.chat_win, function()
+		vim.bo.filetype   = "markdown"
+		vim.wo.conceallevel = 2
+	end)
 
 	-- Input window (starts focused)
 	state.input_win = vim.api.nvim_open_win(state.input_buf, true, {
@@ -330,6 +334,15 @@ function M.open(config, initial_question, context, filetype, file_ctx)
 	imap("n", "<C-u>", function() scroll_chat("\x15") end)
 	imap("i", "<C-d>", function() scroll_chat("\x04") end)
 	imap("n", "<C-d>", function() scroll_chat("\x04") end)
+	local function focus_chat_win()
+		if state.chat_win and vim.api.nvim_win_is_valid(state.chat_win) then
+			vim.api.nvim_set_current_win(state.chat_win)
+		end
+	end
+	imap("i", "<C-j>", focus_chat_win)
+	imap("n", "<C-j>", focus_chat_win)
+	imap("i", "<C-k>", focus_chat_win)
+	imap("n", "<C-k>", focus_chat_win)
 
 	local function cmap(lhs, rhs)
 		vim.keymap.set("n", lhs, rhs, { buffer = state.chat_buf, noremap = true, silent = true })
@@ -338,12 +351,15 @@ function M.open(config, initial_question, context, filetype, file_ctx)
 	cmap("<Esc>", close)
 	cmap("<C-u>", function() scroll_chat("\x15") end)
 	cmap("<C-d>", function() scroll_chat("\x04") end)
-	cmap("i", function()
+	local function focus_input_win()
 		if state.input_win and vim.api.nvim_win_is_valid(state.input_win) then
 			vim.api.nvim_set_current_win(state.input_win)
 			vim.cmd("startinsert")
 		end
-	end)
+	end
+	cmap("i",     focus_input_win)
+	cmap("<C-j>", focus_input_win)
+	cmap("<C-k>", focus_input_win)
 
 	vim.api.nvim_create_autocmd("WinClosed", {
 		group = AUGROUP,
