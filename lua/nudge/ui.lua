@@ -246,6 +246,7 @@ function M.open_prompt(config, is_visual, vis_sr, vis_er)
 		local lines = vim.api.nvim_buf_get_lines(input_buf, 0, -1, false)
 		local prompt = vim.trim(table.concat(lines, " "))
 		close_input(input_buf, input_win)
+		vim.cmd("stopinsert")
 
 		if prompt == "" then
 			return
